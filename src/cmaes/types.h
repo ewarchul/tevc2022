@@ -1,11 +1,12 @@
 #pragma once
 
 #include <functional>
+#include <blaze/Blaze.h>
+#include <blaze/math/dense/DynamicVector.h>
+#include <blaze/math/dense/StaticMatrix.h>
+#include <blaze/math/dense/StaticVector.h>
 
 namespace ew_cmaes {
-using fitness_function = std::function<double(double*, int)>;
-
-using vec = std::vector<std::vector<double>>;
-using matrix = std::vector<std::vector<double>>;
-
+using fitness_function_t = std::function<double(double*, int)>;
+using number_t = double;
 }

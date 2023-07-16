@@ -16,15 +16,18 @@
 namespace ew_cmaes {
 
 using termination_name = std::string;
-using termination_callback = std::function<bool(parameters, solutions)>;
+
+template <int Dimension>
+using termination_callback =
+    std::function<bool(parameters<Dimension>, solutions<Dimension>)>;
 
 struct termination_status {
   bool terminate_{false};
   std::string msg_;
 };
 
-struct termination_criteria {
-  auto check(parameters params, solutions sols) -> termination_status {
+template <int Dimension> struct termination_criteria {
+  auto check(const auto& params, const auto& sols) -> termination_status {
     for (auto&& [name, terminate_cb] : criteria_) {
       if (terminate_cb(params, sols)) {
         return termination_status{
@@ -38,7 +41,7 @@ struct termination_criteria {
   }
 
   auto add_critiera(const termination_name& name,
-                    const termination_callback& cb) -> void {
+                    const termination_callback<Dimension>& cb) -> void {
     criteria_.try_emplace(name, cb);
   }
 
@@ -48,13 +51,16 @@ struct termination_criteria {
     }
   }
 
-  std::unordered_map<termination_name, termination_callback> criteria_;
+  std::unordered_map<termination_name, termination_callback<Dimension>>
+      criteria_;
 };
 
 namespace predefined {
-const auto predefined_termination_criteria = termination_criteria{
-    .criteria_ = {{"max_iter", [](parameters p, solutions s) {
-                     return s.iter_ > p.max_iter_;
+template <int Dimension>
+const auto predefined_termination_criteria = termination_criteria<Dimension>{
+
+    .criteria_ = {{"max_fevals", [](const auto& p, const auto& s) {
+                     return s.fevals_ > p.max_fevals_;
                    }}}};
 }
 
