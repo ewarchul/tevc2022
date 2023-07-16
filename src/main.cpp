@@ -1,3 +1,5 @@
+#include <blaze/math/TransposeFlag.h>
+#include <blaze/math/dense/DynamicVector.h>
 #include <blaze/math/dense/Forward.h>
 #include <blaze/util/Random.h>
 #include <fmt/core.h>
@@ -14,9 +16,9 @@
 #include "cmaes/parameter.h"
 #include "cmaes/util.h"
 
-auto sphere_fn(const auto& x, auto size) -> double {
+auto sphere_fn(const auto& x) -> double {
   double result{0.0};
-  for (int i{0}; i < size; ++i) {
+  for (int i{0}; i < x.size(); ++i) {
     result += x[i] * x[i];
   }
   return result;
@@ -28,30 +30,22 @@ auto main() -> int {
 
   std::cout << xx << std::endl;
 
-  blaze::DynamicVector<double, blaze::rowVector> r(dim);
-  std::cout << xx.columns() << std::endl;
-  for (auto col = 0; col < xx.columns(); ++col) {
-    auto col_view = blaze::column(xx, col);
-    r[col] = sphere_fn(col_view, col_view.size());
-  }
+  auto fit_vals =
+      ew_cmaes::evaluate(xx, [](const auto& x) { return sphere_fn(x); });
 
-  std::cout << r << std::endl;
+  std::cout << fit_vals << std::endl;
 
-  auto enumrated = r | ranges::views::enumerate | ranges::to_vector;
+  auto selected_indices = ew_cmaes::selection_sort(std::move(fit_vals), 2);
 
-  ranges::sort(enumrated, [](const auto& r1, const auto& r2) {
-    return r1.second > r2.second;
-  });
+  std::cout << ranges::views::all(selected_indices) << std::endl;
 
-  auto indicies = enumrated | ranges::views::take(2) | ranges::views::keys | ranges::to_vector;
+  auto params = ew_cmaes::parameters<dim>{};
 
-  auto sorted = blaze::columns(xx, indicies);
+  auto fn = [](const auto& x) { return sphere_fn(x); };
 
-  std::cout << sorted << std::endl;
+  auto cma = ew_cmaes::cmaes<dim>(fn, params);
 
-  /*  auto params = ew_cmaes::parameters<dim>{};*/
-  /*auto cma = ew_cmaes::cmaes<dim>(params);*/
-  /*const auto ret = cma.run();*/
+  const auto ret = cma.run();
 
   return 0;
 }

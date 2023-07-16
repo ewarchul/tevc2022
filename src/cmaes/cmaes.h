@@ -14,19 +14,24 @@ namespace ew_cmaes {
 
 template <int Dimension> class cmaes {
  public:
-  cmaes(parameters<Dimension> params,
+  cmaes(fitness_function_t fit_fn, parameters<Dimension> params,
         termination_criteria<Dimension> stops =
             predefined::predefined_termination_criteria<Dimension>)
-      : params_{std::move(params)}, stops_{std::move(stops)} {
+      : fn_{std::move(fit_fn)}, params_{std::move(params)}, stops_{std::move(stops)} {
     solutions_.iter_ = 0;
   }
 
   [[nodiscard]] auto run() -> solutions<Dimension> {
     while (!terminate()) {
       
-      const auto population = ask();
-      const auto fn_vals = evaluate(population);
-      tell();
+      const blaze::DynamicMatrix<number_t> population = ask();
+      auto fn_vals = evaluate(population, fn_);
+      auto selected_indices = selection_sort(fn_vals, params_.mu_);
+      auto selected_pop = blaze::columns(population, selected_indices);
+      std::cout << population << std::endl;
+      std::cout << selected_pop << std::endl;
+
+//      tell();
 
       fmt::print("[fevals = {}] Running cmaes solver...\n", solutions_.fevals_);
       solutions_.fevals_ += params_.lambda_;
@@ -37,8 +42,9 @@ template <int Dimension> class cmaes {
 
  private:
   [[nodiscard]] auto ask() -> blaze::DynamicMatrix<number_t> {
-    const auto arz = math::random(Dimension, params_.lambda_);
-    return solutions_.mean_ + solutions_.sigma_ * solutions_.B_mat * solutions_.D * arz;
+    return math::random(Dimension, params_.lambda_);
+/*    const auto arz = math::random(Dimension, params_.lambda_);*/
+    /*return solutions_.mean_ + solutions_.sigma_ * solutions_.B_mat * solutions_.D * arz;*/
   }
 
   auto tell() -> void;
@@ -51,7 +57,7 @@ template <int Dimension> class cmaes {
     return terminate_status.terminate_;
   }
 
-  //  fitness_function fn_;
+  fitness_function_t fn_;
   parameters<Dimension> params_;
   solutions<Dimension> solutions_{};
   termination_criteria<Dimension> stops_;

@@ -11,8 +11,8 @@ namespace ew_cmaes {
 
 template <int Dimension> struct solutions {
   solutions() : B(math::diag(dim_, dim_)), D(math::diag(dim_, dim_)) {
-    auto BD_t = blaze::transpose(B * D);
-    C = (B * D) * BD_t;
+/*    auto BD_t = blaze::transpose(B * D);*/
+    /*C = (B * D) * BD_t;*/
   }
 
   unsigned dim_{Dimension};

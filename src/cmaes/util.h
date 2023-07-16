@@ -1,12 +1,14 @@
 #pragma once
-
 #include <blaze/math/expressions/DMatGenExpr.h>
 #include <blaze/util/Exception.h>
 
+#include <iostream>
 #include <range/v3/algorithm/sort.hpp>
 #include <range/v3/iterator/operations.hpp>
 #include <range/v3/range/concepts.hpp>
 #include <range/v3/range/conversion.hpp>
+#include <range/v3/view/enumerate.hpp>
+#include <range/v3/view/iota.hpp>
 #include <range/v3/view/map.hpp>
 #include <range/v3/view/take.hpp>
 #include <span>
@@ -47,13 +49,23 @@ inline auto random(auto rows, auto cols) {
 
 }  // namespace math
 
-auto selection_sort(auto&& fitness_vals, auto selected_num)
+auto selection_sort(auto&& fitness_vals, const auto selected_num)
     -> std::vector<int> {
+  auto zipped = fitness_vals | ranges::views::enumerate | ranges::to_vector;
   ranges::sort(
-      fitness_vals | ranges::enumerate | ranges::to_vector,
+      zipped,
       [](const auto& r1, const auto& r2) { return r1.second > r2.second; });
-  return fitness_vals | ranges::views::take(selected_num) |
-         ranges::views::keys | ranges::to_vector;
+  return zipped | ranges::views::take(selected_num) | ranges::views::keys | ranges::to<std::vector<int>>;
+}
+
+auto evaluate(const auto& population, auto&& fitness_fn) {
+  blaze::DynamicVector<double> fitness_values(population.columns());
+  for (auto column :
+       ranges::views::iota(0) | ranges::views::take(population.columns())) {
+    const auto& col_view = blaze::column(population, column);
+    fitness_values[column] = fitness_fn(col_view);
+  }
+  return fitness_values;
 }
 
 }  // namespace ew_cmaes
