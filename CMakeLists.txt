@@ -28,7 +28,9 @@ find_package(spdlog REQUIRED)
 find_package(fmt 10.0.0 REQUIRED)
 find_package(range-v3 REQUIRED)
 find_package(Eigen3 3.0.0 REQUIRED)
+find_package(blaze REQUIRED)
 find_package(libcmaes REQUIRED)
+find_package(LAPACK REQUIRED)
 
 # Directory with experiments source code
 add_subdirectory(src)
