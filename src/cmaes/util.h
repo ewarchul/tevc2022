@@ -1,4 +1,5 @@
 #pragma once
+#include <blaze/math/TransposeFlag.h>
 #include <blaze/math/expressions/DMatGenExpr.h>
 #include <blaze/util/Exception.h>
 
@@ -16,6 +17,7 @@
 
 #include "random.h"
 #include "types.h"
+#include "concepts.h"
 
 namespace ew_cmaes {
 
@@ -29,8 +31,7 @@ template <typename OutputType> constexpr auto as(auto input) -> OutputType {
 }
 
 namespace math {
-
-inline auto diag(auto size, auto scalar) {
+inline auto diag(auto size, Numeric auto scalar) {
   return blaze::generate(size, size, [scalar](auto row, auto col) {
     return row == col ? scalar : 0;
   });
@@ -39,7 +40,13 @@ inline auto diag(auto size, auto scalar) {
 inline auto diag(const ranges::range auto& vector) {
   return blaze::generate(
       vector.size(), vector.size(),
-      [vector](auto row, auto col) { return row == col ? vector[row] : 0; });
+      [&vector](auto row, auto col) { return row == col ? vector[row] : 0; });
+}
+
+inline auto diag(const ranges::range auto& vector, auto&& op) {
+  return blaze::generate(
+      vector.size(), vector.size(),
+      [&](auto row, auto col) { return row == col ? op(vector[row]) : 0; });
 }
 
 inline auto random(auto rows, auto cols) {
@@ -54,12 +61,12 @@ auto selection_sort(auto&& fitness_vals, const auto selected_num)
   auto zipped = fitness_vals | ranges::views::enumerate | ranges::to_vector;
   ranges::sort(
       zipped,
-      [](const auto& r1, const auto& r2) { return r1.second > r2.second; });
+      [](const auto& r1, const auto& r2) { return r1.second < r2.second; });
   return zipped | ranges::views::take(selected_num) | ranges::views::keys | ranges::to<std::vector<int>>;
 }
 
 auto evaluate(const auto& population, auto&& fitness_fn) {
-  blaze::DynamicVector<double> fitness_values(population.columns());
+  blaze::DynamicVector<double, blaze::rowVector> fitness_values(population.columns());
   for (auto column :
        ranges::views::iota(0) | ranges::views::take(population.columns())) {
     const auto& col_view = blaze::column(population, column);

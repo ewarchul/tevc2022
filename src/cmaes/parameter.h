@@ -29,9 +29,14 @@ template <int Dimension> struct parameters {
              blaze::sum(blaze::pow(weights_, 2));
     cmu_ = mueff_;
 
-    ccov_ = (1 / cmu_) * 2 / blaze::pow(dim_ + 1.4, 2) +
-            (1 - 1 / cmu_) *
-                ((2 * cmu_ - 1) / (blaze::pow((dim_ + 2), 2) + 2 * cmu_));
+    ccov_ = (1.0 / cmu_) * 2.0 / blaze::pow(dim_ + 1.4, 2) +
+            (1.0 - 1.0 / cmu_) *
+                ((2.0 * cmu_ - 1.0) / (blaze::pow((dim_ + 2), 2.0) + 2.0 * cmu_));
+
+    csigma_ = (mueff_ + 2) / (dim_ + mueff_ + 3);
+
+   chin_ = blaze::sqrt(dim_) * (1.0 - (1.0/(4.0 * dim_ )) + (1.0 / ( 21.0 * dim_ * dim_)));
+
   }
 
   // runtime parameters
@@ -44,11 +49,13 @@ template <int Dimension> struct parameters {
   // es parameters
   double sigma_{consts::DEFAULT_STEP_SIZE};
   // cma parameters
-  double cc_{4 / (dim_ + 4 + 0)};
+  double cc_{4.0 / (dim_ + 4.0 + 0.0)};
+  double csigma_{};
 
-  double ccov_;
-  double cmu_;
-  double mueff_;
+  double ccov_{};
+  double chin_{};
+  double cmu_{};
+  double mueff_{};
   blaze::DynamicVector<number_t> weights_;
 };
 }  // namespace ew_cmaes
