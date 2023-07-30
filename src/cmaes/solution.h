@@ -12,9 +12,10 @@
 namespace ew_cmaes {
 
 template <int Dimension> struct solutions {
-  solutions() : B(math::diag(dim_, 1)), D(math::diag(dim_, 1)) {
-    BD = B * D;
-    C = BD * blaze::trans(B*D);
+  solutions() : eigen_vecs(math::diag(dim_, 1))  {
+    smat_t<Dimension, Dimension> x = math::diag(dim_, 1);
+    BD = eigen_vecs * x;
+    cov_mat = BD * blaze::trans(eigen_vecs * x);
   }
 
   unsigned dim_{Dimension};
@@ -24,17 +25,16 @@ template <int Dimension> struct solutions {
   double sigma_{1};
   bool hsig_{true};
 
-  blaze::StaticVector<number_t, Dimension> mean_{};
-  blaze::DynamicMatrix<number_t> population_{};
-  blaze::StaticVector<number_t, Dimension> best_so_far_{};
+  svec_t<Dimension> mean_{};
+  dmat_t population_{};
+  svec_t<Dimension> best_so_far_{};
 
-  blaze::StaticVector<number_t, Dimension> pcov_{};
-  blaze::StaticVector<number_t, Dimension> psigma_{};
+  svec_t<Dimension> pcov_{};
+  svec_t<Dimension> psigma_{};
 
-  blaze::StaticMatrix<number_t, Dimension, Dimension> B{};
-  blaze::StaticMatrix<number_t, Dimension, Dimension> D{};
-  blaze::StaticMatrix<number_t, Dimension, Dimension> BD{};
-  blaze::SymmetricMatrix<blaze::StaticMatrix<number_t, Dimension, Dimension>> C{};
+  smat_t<Dimension, Dimension> eigen_vecs{};
+  smat_t<Dimension, Dimension> BD{};
+  blaze::SymmetricMatrix<smat_t<Dimension, Dimension>> cov_mat{};
 };
 
 }  // namespace ew_cmaes
