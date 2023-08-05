@@ -6,35 +6,58 @@
 #include <blaze/math/dense/StaticMatrix.h>
 #include <blaze/math/dense/StaticVector.h>
 #include <blaze/math/expressions/DMatGenExpr.h>
+#include <blaze/math/sparse/ZeroVector.h>
+
+#include <limits>
 
 #include "types.h"
 #include "util.h"
 namespace ew_cmaes {
 
-template <int Dimension> struct solutions {
-  solutions() : eigen_vecs(math::diag(dim_, 1))  {
-    smat_t<Dimension, Dimension> x = math::diag(dim_, 1);
-    BD = eigen_vecs * x;
-    cov_mat = BD * blaze::trans(eigen_vecs * x);
+struct solutions {
+  solutions() = default;
+
+  solutions(u32_t dimension) : dim_{dimension} {
+    psigma_ = blaze::zero<number_t>(dim_);
+    pcov_ = blaze::zero<number_t>(dim_);
+
+    eigen_vecs = math::diag(dim_, 1);
+    BD = eigen_vecs * math::diag(dim_, 1);
+    cov_mat = BD * blaze::trans(BD);
   }
 
-  unsigned dim_{Dimension};
+  auto inc_feval(const u32_t lambda) { fevals_ += lambda; }
+  auto inc_iter() { ++iter_; }
 
+  auto update_best(const auto& current_best, const auto fitness) {
+    if (fitness < best_so_far_fitness_) {
+      best_so_far_ = current_best;
+      best_so_far_fitness_ = fitness;
+    }
+    best_log_.push_back(current_best);
+    best_log_fitness.push_back(fitness);
+  }
+
+  u32_t dim_{};
   unsigned iter_{};
   unsigned fevals_{};
+
   double sigma_{1};
-  bool hsig_{true};
 
-  svec_t<Dimension> mean_{};
+  dvec_t mean_{};
   dmat_t population_{};
-  svec_t<Dimension> best_so_far_{};
 
-  svec_t<Dimension> pcov_{};
-  svec_t<Dimension> psigma_{};
+  dvec_t best_so_far_{};
+  number_t best_so_far_fitness_{std::numeric_limits<number_t>{}.max()};
+  std::vector<dvec_t> best_log_{};
+  std::vector<number_t> best_log_fitness{};
 
-  smat_t<Dimension, Dimension> eigen_vecs{};
-  smat_t<Dimension, Dimension> BD{};
-  blaze::SymmetricMatrix<smat_t<Dimension, Dimension>> cov_mat{};
+  bool hsig_{true};
+  dvec_t pcov_;
+  dvec_t psigma_;
+  dmat_t eigen_vecs;
+  dmat_t BD;
+  blaze::SymmetricMatrix<dmat_t> cov_mat{};
 };
 
 }  // namespace ew_cmaes

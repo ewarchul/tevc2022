@@ -6,9 +6,6 @@ project(
   LANGUAGES CXX
   DESCRIPTION "Source code for PPMF experiments")
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED YES)
-
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Aliases

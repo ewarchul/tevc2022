@@ -17,33 +17,27 @@ namespace ew_cmaes {
 
 using termination_name = std::string;
 
-template <int Dimension>
-using termination_callback =
-    std::function<bool(parameters<Dimension>, solutions<Dimension>)>;
+using termination_callback = std::function<bool(const parameters&, const solutions&)>;
 
 struct termination_status {
   bool terminate_{false};
   std::string msg_;
 };
 
-template <int Dimension> struct termination_criteria {
+struct termination_criteria {
   auto check(const auto& params, const auto& sols) -> termination_status {
     for (auto&& [name, terminate_cb] : criteria_) {
       if (terminate_cb(params, sols)) {
-        return termination_status{
-            .terminate_ = true,
-            .msg_ = fmt::format("Solver is terminated with the following "
-                                "termination criteria: {}",
-                                name)};
+        return termination_status{.terminate_ = true,
+                                  .msg_ = fmt::format("Solver is terminated with the following "
+                                                      "termination criteria: {}",
+                                                      name)};
       }
     }
     return {};
   }
 
-  auto add_critiera(const termination_name& name,
-                    const termination_callback<Dimension>& cb) -> void {
-    criteria_.try_emplace(name, cb);
-  }
+  auto add_critiera(const termination_name& name, const termination_callback& cb) -> void { criteria_.try_emplace(name, cb); }
 
   auto remove_critiera(const termination_name& name) {
     if (criteria_.contains(name)) {
@@ -51,17 +45,15 @@ template <int Dimension> struct termination_criteria {
     }
   }
 
-  std::unordered_map<termination_name, termination_callback<Dimension>>
-      criteria_;
+  std::unordered_map<termination_name, termination_callback> criteria_;
 };
 
 namespace predefined {
-template <int Dimension>
-const auto predefined_termination_criteria = termination_criteria<Dimension>{
+const auto predefined_termination_criteria = termination_criteria{
 
-    .criteria_ = {{"max_fevals", [](const auto& p, const auto& s) {
-                     return s.fevals_ > p.max_fevals_;
-                   }}}};
+    .criteria_ = {{"max_fevals", [](const auto& p, const auto& s) { return s.fevals_ > p.max_fevals_; }},
+                  {"max_iter", [](const auto& p, const auto& s) { return s.fevals_ > p.max_fevals_; }},
+                  {"stop_fitness", [](const auto& p, const auto& s) { return s.fevals_ > p.max_fevals_; }}}};
 }
 
 }  // namespace ew_cmaes

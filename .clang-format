@@ -1,4 +1,5 @@
 Language: Cpp
+ColumnLimit: 130
 BasedOnStyle: Google
 IndentPPDirectives: AfterHash
 IndentCaseLabels: false

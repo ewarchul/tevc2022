@@ -16,12 +16,11 @@
 
 namespace ew_cmaes {
 
-template <int Dimension> struct parameters {
-  static constexpr u8_t dim_{Dimension};
-  static constexpr number_t hsig_coeff_{(1.4 + 2.0 / (Dimension + 1.0))};
+struct parameters {
+  parameters() = default;
 
-  parameters() {
-    weights_ = blaze::log(mu_ + 1) - blaze::log(blaze::linspace(mu_, as<u8_t>(1), mu_));
+  parameters(u32_t dimension) : dim_{dimension} {
+    weights_ = blaze::log(mu_ + 1) - blaze::log(blaze::linspace(mu_, as<u32_t>(1), mu_));
     weights_ = weights_ / blaze::sum(weights_);
     weights_diag_ = math::diag(weights_);
 
@@ -38,9 +37,12 @@ template <int Dimension> struct parameters {
     pcov_coeff_ = blaze::sqrt(cc_ * (2.0 - cc_) * mueff_);
   }
 
+  u32_t dim_;
+  number_t hsig_coeff_{(1.4 + 2.0 / (dim_ + 1.0))};
+
   u64_t max_fevals_{consts::MAX_FEVALS_MUL * dim_};
-  u8_t lambda_{consts::LAMBDA_MUL * dim_};
-  u8_t mu_{as<u8_t>(blaze::floor(as<number_t>(lambda_) / 2))};
+  u32_t lambda_{consts::LAMBDA_MUL * dim_};
+  u32_t mu_{as<u32_t>(blaze::floor(as<number_t>(lambda_) / 2))};
 
   number_t xtol_{consts::DEFAULT_TOL};
   number_t lower_bound_{consts::DEFAULT_LOWER_BOUND};

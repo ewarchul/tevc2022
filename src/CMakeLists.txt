@@ -12,4 +12,5 @@ set(DEPENDENCIES spdlog::spdlog fmt::fmt LAPACK::LAPACK blaze::blaze
 add_executable(${EXECUTABLE} ${SOURCES} ${HEADERS})
 add_dependencies(${EXECUTABLE} ${DEPENDENCIES})
 target_link_libraries(${EXECUTABLE} ${DEPENDENCIES})
-target_compile_options(${EXECUTABLE} PRIVATE -g)
+target_compile_options(${EXECUTABLE} PRIVATE -O0)
+set_property(TARGET ${EXECUTABLE} PROPERTY CXX_STANDARD 20)

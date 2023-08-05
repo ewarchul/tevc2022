@@ -29,9 +29,5 @@ using dvec_t = blaze::DynamicVector<number_t>;
 using dmat_t = blaze::DynamicMatrix<number_t>;
 
 template <std::size_t Length> using svec_t = blaze::StaticVector<number_t, Length>;
-
 template <std::size_t Row, std::size_t Col> using smat_t = blaze::StaticMatrix<number_t, Row, Col>;
-
-using fitness_function_t = std::function<number_t(dvec_t)>;
-
 }  // namespace ew_cmaes

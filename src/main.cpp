@@ -1,3 +1,4 @@
+#include <bits/chrono.h>
 #include <blaze/math/StorageOrder.h>
 #include <blaze/math/TransposeFlag.h>
 #include <blaze/math/dense/DynamicVector.h>
@@ -17,7 +18,10 @@
 #include "cmaes/cmaes.h"
 #include "cmaes/parameter.h"
 #include "cmaes/random.h"
+#include "cmaes/step_size_update.h"
 #include "cmaes/util.h"
+
+#include <chrono>
 
 auto sphere_fn(const auto& x) -> double {
   double result{0.0};
@@ -28,18 +32,22 @@ auto sphere_fn(const auto& x) -> double {
 }
 
 auto main() -> int {
-  constexpr int dim{2};
-  const blaze::DynamicMatrix<double> xx =
-      ew_cmaes::math::diag(std::vector{2, 5, 1, 3, 4});
+  constexpr int dim{10};
+  blaze::StaticVector<double, dim> vec(95);
 
-  blaze::DynamicVector<double> vec{95, 95};
-  blaze::DynamicMatrix<double> x = blaze::expand<dim>(vec);
-  std::cout << x << std::endl;
-
-  auto params = ew_cmaes::parameters<dim>{};
+  auto params = ew_cmaes::parameters{dim};
+  auto csa = ew_cmaes::csa_updater{params};
   auto fn = [](const auto& x) { return sphere_fn(x); };
-  auto cma = ew_cmaes::cmaes<dim>(vec, fn, params);
+
+  auto cma = ew_cmaes::cmaes(vec, fn, csa, params);
+  
+  auto start = std::chrono::system_clock::now();
   const auto ret = cma.run();
+  auto end = std::chrono::system_clock::now();
+
+  fmt::print("elapsed time -> {}ms\n", std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
+    
+  std::cout << ret.best_so_far_fitness_ << std::endl;
 
   return 0;
 }
